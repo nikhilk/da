@@ -1,6 +1,10 @@
 {
-  "name": "DeviantArt Downloader",
+  "name": "da-downloader",
   "version": "1.0.0",
   "description": "DeviantArt Favorites Downloader",
   "main": "index.js",
+  "dependencies": {
+    "nomnom": "^1.8.1",
+    "requests": "^0.1.7"
+  }
 }
