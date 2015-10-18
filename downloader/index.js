@@ -3,6 +3,7 @@
 //
 
 var nomnom = require('nomnom');
+var da = require('./da');
 
 var optionsSpec = {
   clientId: {
@@ -41,6 +42,8 @@ var options = nomnom.script('downloader')
 
 function main() {
   console.dir(options);
+
+  da.token(options.clientId, options.clientSecret, function() { });
 }
 
 main();
