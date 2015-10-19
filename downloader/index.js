@@ -41,9 +41,10 @@ var options = nomnom.script('downloader')
                      .parse();
 
 function main() {
-  console.dir(options);
-
-  da.token(options.clientId, options.clientSecret, function() { });
+  da.token(options.clientId, options.clientSecret,
+           function(err, token) {
+             console.log(token);
+           });
 }
 
 main();

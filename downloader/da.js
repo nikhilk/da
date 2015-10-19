@@ -10,11 +10,17 @@ function getClientAccessToken(clientId, clientSecret, callback) {
       client_id: clientId,
       client_secret: clientSecret,
       grant_type: 'client_credentials'
-    }
+    },
+    json: true
   };
  
-  request.get(options, function(error, response, body) {
-    console.log(body);
+  request.get(options, function(error, response, result) {
+    if (error || !result.access_token) {
+      callback(error);
+    }
+    else {
+      callback(null, result.access_token);
+    }
   });
 }
 
