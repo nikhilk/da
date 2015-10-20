@@ -4,7 +4,9 @@
   "description": "DeviantArt Favorites Downloader",
   "main": "index.js",
   "dependencies": {
+    "bluebird": "^3.0.2",
     "nomnom": "^1.8.1",
-    "request": "^2.65.0"
+    "request": "^2.65.0",
+    "request-promise": "^1.0.2"
   }
 }
