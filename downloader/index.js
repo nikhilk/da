@@ -26,8 +26,8 @@ var optionsSpec = {
   },
   source: {
     metavar: 'collection',
-    help: 'Source collection. All if unspecified.',
-    default: '<all>'
+    help: 'Source collection.',
+    default: 'Featured'
   },
   target: {
     metavar: 'dir',
@@ -49,20 +49,31 @@ var options = nomnom.script('downloader')
 function main() {
   da.token(options.clientId, options.clientSecret)
     .then(function(token) {
-      console.log(token);
-
       da.collections(token, options.user)
         .then(function(collections) {
-          console.log(collections);
+          var collection = collections[options.source];
+          if (!collection) {
+            console.log('The specified source folder was not found.');
+          }
+          else {
+            da.deviations(token, options.user, collection)
+              .then(function(deviations) {
+                console.dir(deviations);
+              })
+              .catch(function(reason) {
+                console.log('The specified source folder could not be listed.');
+                console.log(reason.error | reason);
+              });
+          }
         })
         .catch(function(reason) {
           console.log('Failed to retrieve collections.');
-          console.log(reason.error);
+          console.log(reason.error | reason);
         });
     })
     .catch(function(reason) {
       console.log('Failed to retrieve token.');
-      console.log(reason.error);
+      console.log(reason.error | reason);
     });
 }
 

@@ -26,6 +26,7 @@ function getCollectionsPaged(token, user, offset) {
     qs: {
       access_token: token,
       username: user,
+      mature_content: true,
       calculate_size: 'no',
       ext_preload: 'no',
       offset: offset,
@@ -78,8 +79,70 @@ function getCollections(token, user) {
   return Promise.deferLoop(continueLoop, executeLoop);
 }
 
+function getDeviationsPaged(token, user, collection, offset) {
+  var options = {
+    url: 'https://www.deviantart.com/api/v1/oauth2/collections/' + collection,
+    qs: {
+      access_token: token,
+      username: user,
+      mature_content: true,
+      offset: offset,
+      limit: 24
+    },
+    transform: function(body) {
+      var data = JSON.parse(body);
+
+      var items = data.results.map(function(item) {
+        return {
+          id: item.deviationid,
+          url: item.url,
+          title: item.title,
+          time: item.published_time,
+          user: item.author.username,
+          src: item.content.src
+        };
+      });
+
+      return {
+        items: items,
+        more: data.has_more,
+        next: data.next_offset
+      };
+    }
+  };
+
+  return request.get(options);
+}
+
+function getDeviations(token, user, collection) {
+  var deviations = [];
+  var offset = 0;
+  var more = true;
+
+  function continueLoop() { return more; }
+  function executeLoop() {
+    return new Promise(function(resolve, reject) {
+      getDeviationsPaged(token, user, collection, offset)
+        .then(function(result) {
+          deviations = deviations.concat(result.items);
+          offset = result.next;
+          more = result.more;
+
+          resolve(deviations);
+        })
+        .catch(function(reason) {
+          reject(reason.error);
+        });
+    });
+  }
+
+  return Promise.deferLoop(continueLoop, executeLoop);
+}
+
+
 module.exports = {
   token: getClientAccessToken,
-  collections: getCollections
+  collections: getCollections,
+  deviations: getDeviations
 };
 
