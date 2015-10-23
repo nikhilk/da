@@ -49,31 +49,26 @@ var options = nomnom.script('downloader')
 function main() {
   da.token(options.clientId, options.clientSecret)
     .then(function(token) {
-      da.collections(token, options.user)
-        .then(function(collections) {
-          var collection = collections[options.source];
-          if (!collection) {
-            console.log('The specified source folder was not found.');
-          }
-          else {
-            da.deviations(token, options.user, collection)
-              .then(function(deviations) {
-                console.dir(deviations);
-              })
-              .catch(function(reason) {
-                console.log('The specified source folder could not be listed.');
-                console.log(reason.error | reason);
-              });
-          }
-        })
-        .catch(function(reason) {
-          console.log('Failed to retrieve collections.');
-          console.log(reason.error | reason);
-        });
+      options.token = token;
+      return da.collections(token, options.user);
     })
-    .catch(function(reason) {
-      console.log('Failed to retrieve token.');
-      console.log(reason.error | reason);
+    .then(function(collections) {
+      options.sources = collections;
+
+      var source = collections[options.source];
+      if (!source) {
+        console.log('The specified source folder was not found.');
+        return null;
+      }
+      else {
+        return da.deviations(options.token, options.user, source)
+      }
+    })
+    .then(function(deviations) {
+      console.dir(deviations);
+    })
+    .catch(function(e) {
+      console.log(e.error | e);
     });
 }
 
