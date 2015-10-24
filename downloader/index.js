@@ -46,27 +46,40 @@ var options = nomnom.script('downloader')
                      .nocolors()
                      .parse();
 
-function main() {
-  da.token(options.clientId, options.clientSecret)
-    .then(function(token) {
-      options.token = token;
-      return da.collections(token, options.user);
-    })
-    .then(function(collections) {
-      options.sources = collections;
+function retrieveToken() {
+  return da.token(options.clientId, options.clientSecret)
+           .then(function(token) {
+             options.token = token;
+             return token;
+           });
+}
 
-      var source = collections[options.source];
-      if (!source) {
-        console.log('The specified source folder was not found.');
-        return null;
-      }
-      else {
-        return da.deviations(options.token, options.user, source)
-      }
-    })
-    .then(function(deviations) {
-      console.dir(deviations);
-    })
+function retrieveCollections() {
+  return da.collections(options.token, options.user)
+           .then(function(collections) {
+             options.sources = collections;
+             return collections;
+           });
+}
+
+function retrieveDeviations() {
+  var source = options.sources[options.source];
+  if (!source) {
+    console.log('The specified source folder was not found.');
+    return null;
+  }
+
+  return da.deviations(options.token, options.user, source)
+           .then(function(deviations) {
+             console.dir(deviations);
+             return deviations;
+           });
+}
+
+function main() {
+  retrieveToken()
+    .then(retrieveCollections)
+    .then(retrieveDeviations)
     .catch(function(e) {
       console.log(e.error | e);
     });
