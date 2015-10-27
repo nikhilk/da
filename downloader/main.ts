@@ -62,6 +62,9 @@ async function main() {
   options.token = await da.token(options.client, options.secret);
 
   console.log(options.token);
+
+  var collections = await da.collections(options.token, options.user);
+  console.dir(collections);
 }
 
 (async function() {
