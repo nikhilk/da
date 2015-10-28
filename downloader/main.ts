@@ -14,8 +14,6 @@ interface Options {
   source: string;
   target: string;
   artists: boolean;
-
-  token?: string;
 }
 
 function getOptions(): Options {
@@ -59,12 +57,20 @@ function getOptions(): Options {
 
 async function main() {
   var options = getOptions();
-  options.token = await da.token(options.client, options.secret);
 
-  console.log(options.token);
+  var token = await da.token(options.client, options.secret);
+  var collections = await da.collections(token, options.user);
 
-  var collections = await da.collections(options.token, options.user);
-  console.dir(collections);
+  var collection = collections.find(function(c: data.Collection) {
+    return c.name == options.source;
+  });
+  if (!collection) {
+    console.log('The specified collection source was not found.');
+    return;
+  }
+
+  var deviations = await da.deviations(token, options.user, collection.id);
+  console.dir(deviations);
 }
 
 (async function() {
