@@ -4,6 +4,15 @@
 
 declare module data {
 
+  interface Options {
+    client: string;
+    secret: string;
+    user: string;
+    source: string;
+    target: string;
+    artists: boolean;
+  }
+
   interface Collection {
     name: string;
     id: string;
