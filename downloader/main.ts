@@ -4,12 +4,36 @@
 
 'use strict';
 
-var nomnom = require('nomnom');
+var nomnom = require('nomnom'),
+    path = require('path');
 var cli = require('./cli'),
-    da = require('./da');
+    da = require('./da'),
+    sync = require('./sync');
+
+var options: data.Options = null;
+
+function filterDeviations(d: data.Deviation): boolean {
+  return !!d;
+}
+
+function createImage(d: data.Deviation): data.Image {
+  var timestamp = new Date(d.time * 1000);
+  var file = d.id + '.jpg';
+  var location = options.artists ? path.join(options.target, d.artist, file) :
+                                   path.join(options.target, file);
+
+  return {
+    url: d.src,
+    path: location,
+    description: d.title,
+    artist: d.artist,
+    datetime: timestamp,
+    document: d.url
+  };
+}
 
 async function main() {
-  var options = cli.options();
+  options = cli.options();
 
   var token = await da.token(options.client, options.secret);
   var collections = await da.collections(token, options.user);
@@ -23,8 +47,11 @@ async function main() {
   }
 
   var deviations = await da.deviations(token, options.user, collection.id);
-  console.dir(deviations);
+  var images = deviations.filter(filterDeviations).map(createImage);
+
+  sync.images(images);
 }
+
 
 (async function() {
   try {

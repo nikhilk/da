@@ -26,5 +26,14 @@ declare module data {
     src: string;
     time: number;
   }
+
+  interface Image {
+    url: string;
+    path: string;
+    description: string;
+    artist: string;
+    datetime: Date;
+    document: string;
+  }
 }
 

@@ -90,6 +90,10 @@ async function getDeviationsPaged(token: string, user: string, collection: strin
 
       var items: data.Deviation[] =
         data.results.map(function(item: any): data.Deviation {
+          if (!item.content || !item.content.src) {
+            return null;
+          }
+
           return {
             id: item.deviationid,
             url: item.url,
