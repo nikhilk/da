@@ -30,10 +30,10 @@ declare module data {
   interface Image {
     url: string;
     path: string;
+    source: string;
     description: string;
     artist: string;
     datetime: Date;
-    document: string;
   }
 }
 

@@ -5,6 +5,7 @@
 'use strict';
 
 var fs = require('fs'),
+    lwip = require('lwip'),
     path = require('path'),
     request = require('throttled-request')(require('request'));
 
@@ -15,11 +16,34 @@ request.configure({
 });
 
 function downloadImage(img: data.Image): void {
+  console.log(img.url);
+
+  var file = img.path;
+  delete img.path;
+
+  var ext = path.extname(file);
+  var md = file.replace(ext, '.txt');
+  fs.writeFileSync(md, JSON.stringify(img, null, 2), { encoding: 'utf8' });
+
   request(img.url)
-    .pipe(fs.createWriteStream(img.path))
+    .pipe(fs.createWriteStream(file))
     .on('close', function() {
-      console.log(img.path);
-      fs.utimesSync(img.path, img.datetime, img.datetime);
+      if (ext != '.jpg') {
+        lwip.open(file, function(e:Error, image: any) {
+          if (!e) {
+            var jpgFile = file.replace(ext, '.jpg');
+            image.writeFile(jpgFile, 'jpg', {quality: 95}, function(e: Error) {
+              if (!e) {
+                fs.unlinkSync(file);
+                fs.utimesSync(jpgFile, img.datetime, img.datetime);
+              }
+            });
+          }
+        });
+      }
+      else {
+        fs.utimesSync(file, img.datetime, img.datetime);
+      }
     });
 }
 

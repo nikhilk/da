@@ -18,17 +18,17 @@ function filterDeviations(d: data.Deviation): boolean {
 
 function createImage(d: data.Deviation): data.Image {
   var timestamp = new Date(d.time * 1000);
-  var file = d.id + '.jpg';
+  var file = d.id + path.extname(d.src);
   var location = options.artists ? path.join(options.target, d.artist, file) :
                                    path.join(options.target, file);
 
   return {
     url: d.src,
     path: location,
+    source: d.url,
     description: d.title,
     artist: d.artist,
-    datetime: timestamp,
-    document: d.url
+    datetime: timestamp
   };
 }
 
