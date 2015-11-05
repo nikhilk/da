@@ -15,6 +15,26 @@ request.configure({
   milliseconds: 1000
 });
 
+function updateImage(img: data.Image, ext: string, file: string): void {
+  if (ext == '.jpg') {
+    fs.utimesSync(file, img.datetime, img.datetime);
+    return;
+  }
+
+  lwip.open(file, function(e:Error, image: any) {
+    if (!e) {
+      var jpgFile = file.replace(ext, '.jpg');
+      var jpgInfo = { quality: 95 };
+      image.writeFile(jpgFile, 'jpg', jpgInfo, function(e: Error) {
+        if (!e) {
+          fs.unlinkSync(file);
+          fs.utimesSync(jpgFile, img.datetime, img.datetime);
+        }
+      });
+    }
+  });
+}
+
 function downloadImage(img: data.Image): void {
   console.log(img.url);
 
@@ -25,25 +45,11 @@ function downloadImage(img: data.Image): void {
   var md = file.replace(ext, '.txt');
   fs.writeFileSync(md, JSON.stringify(img, null, 2), { encoding: 'utf8' });
 
+  var stream = fs.createWriteStream(file);
   request(img.url)
-    .pipe(fs.createWriteStream(file))
-    .on('close', function() {
-      if (ext != '.jpg') {
-        lwip.open(file, function(e:Error, image: any) {
-          if (!e) {
-            var jpgFile = file.replace(ext, '.jpg');
-            image.writeFile(jpgFile, 'jpg', {quality: 95}, function(e: Error) {
-              if (!e) {
-                fs.unlinkSync(file);
-                fs.utimesSync(jpgFile, img.datetime, img.datetime);
-              }
-            });
-          }
-        });
-      }
-      else {
-        fs.utimesSync(file, img.datetime, img.datetime);
-      }
+    .pipe(stream)
+    .on('finish', function() {
+      stream.close(function() { updateImage(img, ext, file); });
     });
 }
 
