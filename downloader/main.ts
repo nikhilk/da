@@ -4,11 +4,11 @@
 
 'use strict';
 
-var nomnom = require('nomnom'),
+var fs = require('fs'),
+    nomnom = require('nomnom'),
     path = require('path');
 var cli = require('./cli'),
-    da = require('./da'),
-    sync = require('./sync');
+    da = require('./da');
 
 var options: data.Options = null;
 
@@ -18,17 +18,19 @@ function filterDeviations(d: data.Deviation): boolean {
 
 function createImage(d: data.Deviation): data.Image {
   var timestamp = new Date(d.time * 1000);
-  var file = d.id + path.extname(d.src);
+  var file = d.id + '.txt';
   var location = options.artists ? path.join(options.target, d.artist, file) :
                                    path.join(options.target, file);
 
   return {
-    url: d.src,
     path: location,
-    source: d.url,
-    description: d.title,
-    artist: d.artist,
-    datetime: timestamp
+    metadata: {
+      url: d.src,
+      source: d.url,
+      description: d.title,
+      artist: d.artist,
+      datetime: timestamp
+    }
   };
 }
 
@@ -49,7 +51,15 @@ async function main() {
   var deviations = await da.deviations(token, options.user, collection.id);
   var images = deviations.filter(filterDeviations).map(createImage);
 
-  sync.images(images);
+  images.forEach(function(img: data.Image) {
+    var dir = path.dirname(img.path);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+
+    var md = JSON.stringify(img.metadata, null, 2);
+    fs.writeFileSync(img.path, md, { encoding: 'utf8' });
+  });
 }
 
 

@@ -27,13 +27,17 @@ declare module data {
     time: number;
   }
 
-  interface Image {
+  interface ImageMetadata {
     url: string;
-    path: string;
     source: string;
     description: string;
     artist: string;
     datetime: Date;
+  }
+
+  interface Image {
+    metadata: ImageMetadata,
+    path: string
   }
 }
 
