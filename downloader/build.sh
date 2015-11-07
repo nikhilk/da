@@ -1,7 +1,9 @@
 #!/bin/sh
 
-mkdir -p ../bin
-cp package.json ../bin/package.json
+mkdir -p ../bin/downloader
+cp package.json ../bin/downloader/package.json
 
-tsc --experimentalAsyncFunctions -t ES6 --noImplicitAny --outdir ../bin *.ts
+tsc --experimentalAsyncFunctions -t ES6 --noImplicitAny \
+  --outdir ../bin/downloader \
+  *.ts
 

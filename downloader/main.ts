@@ -52,6 +52,10 @@ async function main() {
   var images = deviations.filter(filterDeviations).map(createImage);
 
   images.forEach(function(img: data.Image) {
+    if (fs.existsSync(img.path)) {
+      return;
+    }
+
     var dir = path.dirname(img.path);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
