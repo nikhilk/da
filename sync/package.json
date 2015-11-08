@@ -1,0 +1,16 @@
+{
+  "name": "da-sync",
+  "version": "1.0.0",
+  "description": "DeviantArt Favorites Sync",
+  "main": "main.js",
+  "engines": {
+    "node": "5.0.0"
+  },
+  "dependencies": {
+    "lwip": "0.0.8",
+    "nomnom": "^1.8.1",
+    "request": "^2.65.0",
+    "request-promise": "^1.0.2",
+    "throttled-request": "^0.1.1"
+  }
+}
