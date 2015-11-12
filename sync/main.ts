@@ -27,6 +27,16 @@ function enumerateFiles(dir: string, cb: Callback<string>): void {
         return;
       }
 
+      var ext = path.extname(fullPath);
+      if (ext != '.txt') {
+        return;
+      }
+
+      var img = fullPath.replace(ext, '.jpg');
+      if (fs.existsSync(img)) {
+        return;
+      }
+
       cb(null, fullPath);
     });
   });
