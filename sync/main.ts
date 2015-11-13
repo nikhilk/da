@@ -47,9 +47,15 @@ async function main() {
 
   var dir = path.join(process.cwd(), options.path);
   enumerateFiles(dir, function(e: Error, file: string) {
-    if (file) {
-      console.log(file);
+    if (e) {
+      return;
     }
+
+    console.log(file);
+
+    var data = fs.readFileSync(file, { encoding: 'utf8' });
+    var img: data.ImageMetadata = JSON.parse(data);
+    console.log(img.url);
   });
 }
 
