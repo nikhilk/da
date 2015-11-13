@@ -9,54 +9,60 @@ var fs = require('fs'),
     path = require('path');
 var cli = require('./cli');
 
-interface Callback<T> {
-  (e: Error, result: T): void
+interface FileCallback<T> {
+  (file: string): Promise<any>;
 }
 
-function enumerateFiles(dir: string, cb: Callback<string>): void {
-  fs.readdir(dir, function(e: Error, files: string[]) {
-    if (e) {
-      console.log(e);
-      return;
-    }
+function filterFile(file: string): boolean {
+  var ext = path.extname(file);
+  if (ext != '.txt') {
+    return false;
+  }
 
-    files.forEach(function(file) {
-      var fullPath = path.join(dir, file);
-      if (fs.statSync(fullPath).isDirectory()) {
-        enumerateFiles(fullPath, cb);
-        return;
+  var img = file.replace(ext, '.jpg');
+  if (fs.existsSync(img)) {
+    return false;
+  }
+
+  return true;
+}
+
+async function enumerateFiles(dir: string, cb: FileCallback<string>):
+    Promise<any> {
+  return new Promise<any>((resolve, reject) => {
+    fs.readdir(dir, async function(e: Error, files: string[]) {
+      if (files) {
+        for (var i = 0; i < files.length; i++) {
+          var fullPath = path.join(dir, files[i]);
+          if (fs.statSync(fullPath).isDirectory()) {
+            await enumerateFiles(fullPath, cb);
+          }
+          else if (filterFile(fullPath)) {
+            await cb(fullPath);
+          }
+        }
       }
 
-      var ext = path.extname(fullPath);
-      if (ext != '.txt') {
-        return;
-      }
-
-      var img = fullPath.replace(ext, '.jpg');
-      if (fs.existsSync(img)) {
-        return;
-      }
-
-      cb(null, fullPath);
+      resolve(null);
     });
+  });
+}
+
+async function downloadImage(metadataFile: string): Promise<any> {
+  var metadata = JSON.parse(fs.readFileSync(metadataFile, { encoding:'utf8' }));
+  var imgFile = metadataFile.replace('.txt', '.jpg');
+
+  return new Promise<any>((resolve, reject) => {
+    console.log(metadata.url + ' -> ' + imgFile);
+    resolve(null);
   });
 }
 
 async function main() {
   var options = cli.options();
-
   var dir = path.join(process.cwd(), options.path);
-  enumerateFiles(dir, function(e: Error, file: string) {
-    if (e) {
-      return;
-    }
 
-    console.log(file);
-
-    var data = fs.readFileSync(file, { encoding: 'utf8' });
-    var img: data.ImageMetadata = JSON.parse(data);
-    console.log(img.url);
-  });
+  await enumerateFiles(dir, downloadImage);
 }
 
 
