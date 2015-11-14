@@ -6,7 +6,8 @@
 
 var fs = require('fs'),
     nomnom = require('nomnom'),
-    path = require('path');
+    path = require('path'),
+    request = require('request-promise');
 var cli = require('./cli');
 
 interface FileCallback<T> {
@@ -52,10 +53,8 @@ async function downloadImage(metadataFile: string): Promise<any> {
   var metadata = JSON.parse(fs.readFileSync(metadataFile, { encoding:'utf8' }));
   var imgFile = metadataFile.replace('.txt', '.jpg');
 
-  return new Promise<any>((resolve, reject) => {
-    console.log(metadata.url + ' -> ' + imgFile);
-    resolve(null);
-  });
+  console.log(metadata.url + ' -> ' + imgFile);
+  return request(metadata.url).pipe(fs.createWriteStream(imgFile));
 }
 
 async function main() {
