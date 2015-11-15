@@ -10,8 +10,8 @@ var fs = require('fs'),
     request = require('request-promise');
 var cli = require('./cli');
 
-interface FileCallback<T> {
-  (file: string): Promise<any>;
+interface FileCallback {
+  (file: string): Promise<string>;
 }
 
 function filterFile(file: string): boolean {
@@ -20,48 +20,61 @@ function filterFile(file: string): boolean {
     return false;
   }
 
-  var img = file.replace(ext, '.jpg');
-  if (fs.existsSync(img)) {
+  var jpg = file.replace(ext, '.jpg');
+  if (fs.existsSync(jpg)) {
     return false;
   }
 
   return true;
 }
 
-async function enumerateFiles(dir: string, cb: FileCallback<string>):
-    Promise<any> {
+async function enumerateFiles(dir: string, cb: FileCallback):
+    Promise<string[]> {
   return new Promise<any>((resolve, reject) => {
+    var results: string[] = [];
+
     fs.readdir(dir, async function(e: Error, files: string[]) {
       if (files) {
         for (var i = 0; i < files.length; i++) {
           var fullPath = path.join(dir, files[i]);
+
           if (fs.statSync(fullPath).isDirectory()) {
-            await enumerateFiles(fullPath, cb);
+            results = results.concat(await enumerateFiles(fullPath, cb));
           }
           else if (filterFile(fullPath)) {
-            await cb(fullPath);
+            results.push(await cb(fullPath));
           }
         }
       }
 
-      resolve(null);
+      resolve(results);
     });
   });
 }
 
-async function downloadImage(metadataFile: string): Promise<any> {
+async function downloadImage(metadataFile: string): Promise<string> {
   var metadata = JSON.parse(fs.readFileSync(metadataFile, { encoding:'utf8' }));
-  var imgFile = metadataFile.replace('.txt', '.jpg');
+  var ext = path.extname(metadata.url);
+  var imgFile = metadataFile.replace('.txt', ext);
 
   console.log(metadata.url + ' -> ' + imgFile);
-  return request(metadata.url).pipe(fs.createWriteStream(imgFile));
+
+  return new Promise<string>((resolve, reject) => {
+    var req = request(metadata.url);
+    req.pipe(fs.createWriteStream(imgFile));
+    req.on('end', function() {
+      resolve(imgFile);
+    });
+  });
 }
 
 async function main() {
   var options = cli.options();
   var dir = path.join(process.cwd(), options.path);
 
-  await enumerateFiles(dir, downloadImage);
+  var images = await enumerateFiles(dir, downloadImage);
+  console.log('----');
+  images.forEach(function(i) { console.log(i); });
 }
 
 
