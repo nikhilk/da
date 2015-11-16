@@ -54,6 +54,7 @@ async function enumerateFiles(dir: string, cb: FileCallback):
 
 async function downloadImage(metadataFile: string): Promise<string> {
   var metadata = JSON.parse(fs.readFileSync(metadataFile, { encoding:'utf8' }));
+  var timestamp = new Date(metadata.datetime);
   var ext = path.extname(metadata.url);
   var imgFile = metadataFile.replace('.txt', ext);
 
@@ -63,6 +64,7 @@ async function downloadImage(metadataFile: string): Promise<string> {
     var req = request(metadata.url);
     req.pipe(fs.createWriteStream(imgFile));
     req.on('end', function() {
+      fs.utimesSync(imgFile, timestamp, timestamp);
       resolve(imgFile);
     });
   });
