@@ -61,8 +61,11 @@ async function main() {
       fs.mkdirSync(dir);
     }
 
+    var timestamp = img.metadata.datetime;
     var md = JSON.stringify(img.metadata, null, 2);
+
     fs.writeFileSync(img.path, md, { encoding: 'utf8' });
+    fs.utimesSync(img.path, timestamp, timestamp);
   });
 }
 
